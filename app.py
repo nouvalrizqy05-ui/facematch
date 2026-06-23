@@ -92,12 +92,10 @@ def load_scorer():
     except FileNotFoundError:
         return None
 
-@st.cache_resource(show_spinner="Memuat ArcFace embedder (bisa memakan waktu untuk download bobot model saat pertama kali)...")
+@st.cache_resource(show_spinner="Memuat ArcFace embedder...")
 def load_embedder():
     from src.embedder import FaceEmbedder
-    embedder = FaceEmbedder(detector_backend="opencv")
-    embedder.preload_model()
-    return embedder
+    return FaceEmbedder(detector_backend="opencv")
 
 scorer   = load_scorer()
 embedder = load_embedder()
