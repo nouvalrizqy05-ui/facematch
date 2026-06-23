@@ -1,3 +1,14 @@
+"""
+app.py
+======
+Aplikasi Streamlit: Face Comparison System
+Tampilan mengikuti templates/index.html (FaceMatch design)
+Backend: ArcFace (512-dim) + PCA (95-dim) — Hybrid Scoring
+
+Kelompok: Nouval · Tirta · Farritz
+Mata Kuliah: Aljabar Linier | UNNES 2025
+"""
+
 import os
 import io
 import base64
@@ -326,30 +337,50 @@ else:
 # ------------------------------------------------------------------
 if run and file1 and file2:
 
-    with st.spinner("Mengekstrak ArcFace embedding..."):
-        img1_bgr = pil_to_bgr(Image.open(file1))
-        img2_bgr = pil_to_bgr(Image.open(file2))
+    emb1, emb2, crop1, crop2 = None, None, None, None
 
+    with st.spinner("Mengekstrak ArcFace embedding..."):
         try:
-            emb1, crop1 = embedder.get_embedding(img1_bgr, enforce_detection=True)
-            emb2, crop2 = embedder.get_embedding(img2_bgr, enforce_detection=True)
+            img1_bgr = pil_to_bgr(Image.open(file1))
+            img2_bgr = pil_to_bgr(Image.open(file2))
+            emb1, crop1 = embedder.get_embedding(img1_bgr, enforce_detection=False)
+            emb2, crop2 = embedder.get_embedding(img2_bgr, enforce_detection=False)
         except Exception as e:
-            st.error(f"❌ Gagal mendeteksi wajah: {e}")
+            st.markdown(f"""
+            <div class="fm-card" style="border-left:4px solid #f43f5e;">
+              <p style="color:#f43f5e;font-weight:700;margin:0;">❌ Error saat ekstraksi embedding</p>
+              <p style="font-size:12px;color:#64748b;margin:6px 0 0;">{str(e)}</p>
+            </div>""", unsafe_allow_html=True)
             st.stop()
 
     if emb1 is None or emb2 is None:
-        st.warning("⚠️ Wajah tidak terdeteksi pada salah satu foto. Pastikan wajah frontal dan cukup terang.")
+        st.markdown("""
+        <div class="fm-card" style="border-left:4px solid #f59e0b;">
+          <p style="color:#b45309;font-weight:700;margin:0;">⚠️ Wajah tidak terdeteksi</p>
+          <p style="font-size:12px;color:#64748b;margin:6px 0 0;">
+            Pastikan wajah terlihat jelas, pencahayaan cukup, dan menghadap ke depan.
+            Coba foto dengan resolusi lebih tinggi.
+          </p>
+        </div>""", unsafe_allow_html=True)
         st.stop()
 
-    result = scorer.score(emb1, emb2)
+    try:
+        result = scorer.score(emb1, emb2)
+    except Exception as e:
+        st.error(f"❌ Gagal menghitung skor: {e}")
+        st.stop()
 
     # --- Generate semua plot ---
     with st.spinner("Membuat visualisasi..."):
-        b64_crops  = fig_to_b64(plot_face_crops(crop1, crop2, result, "Foto Masa Kecil", "Foto Sekarang"))
-        b64_eigen  = fig_to_b64(plot_eigenface_overlay(crop1, crop2, scorer._pca, emb1, emb2, result))
-        b64_hybrid = fig_to_b64(plot_hybrid_score(result))
-        b64_pca2d  = fig_to_b64(plot_embedding_comparison(emb1, emb2, scorer._pca, "Foto Masa Kecil", "Foto Sekarang"))
-        b64_pca_var= fig_to_b64(plot_pca_variance(scorer._pca))
+        try:
+            b64_crops  = fig_to_b64(plot_face_crops(crop1, crop2, result, "Foto Masa Kecil", "Foto Sekarang"))
+            b64_eigen  = fig_to_b64(plot_eigenface_overlay(crop1, crop2, scorer._pca, emb1, emb2, result))
+            b64_hybrid = fig_to_b64(plot_hybrid_score(result))
+            b64_pca2d  = fig_to_b64(plot_embedding_comparison(emb1, emb2, scorer._pca, "Foto Masa Kecil", "Foto Sekarang"))
+            b64_pca_var= fig_to_b64(plot_pca_variance(scorer._pca))
+        except Exception as e:
+            st.error(f"❌ Gagal membuat visualisasi: {e}")
+            st.stop()
 
     match_class = "match" if result.is_match else "nomatch"
     match_icon  = "✅" if result.is_match else "❌"
