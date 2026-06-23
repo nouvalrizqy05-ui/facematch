@@ -1,14 +1,3 @@
-"""
-app.py
-======
-Aplikasi Streamlit: Face Comparison System
-Tampilan mengikuti templates/index.html (FaceMatch design)
-Backend: ArcFace (512-dim) + PCA (95-dim) — Hybrid Scoring
-
-Kelompok: Nouval · Tirta · Farritz
-Mata Kuliah: Aljabar Linier | UNNES 2025
-"""
-
 import os
 import io
 import base64
@@ -304,7 +293,7 @@ with col1:
     file1 = st.file_uploader("Foto masa kecil", type=["jpg","jpeg","png","bmp","webp"],
                               label_visibility="collapsed", key="f1")
     if file1:
-        st.image(file1, use_container_width=True)
+        st.image(file1, width=300)
 
 with col2:
     st.markdown("""
@@ -315,7 +304,7 @@ with col2:
     file2 = st.file_uploader("Foto sekarang", type=["jpg","jpeg","png","bmp","webp"],
                               label_visibility="collapsed", key="f2")
     if file2:
-        st.image(file2, use_container_width=True)
+        st.image(file2, width=300)
 
 st.markdown('</div>', unsafe_allow_html=True)  # tutup fm-card
 
