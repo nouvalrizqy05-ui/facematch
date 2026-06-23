@@ -30,6 +30,9 @@ import matplotlib.pyplot as plt
 os.environ["DEEPFACE_HOME"] = "/tmp/.deepface"   # Streamlit Cloud: model disimpan di /tmp
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 warnings.filterwarnings("ignore")
 
 sys.path.insert(0, str(Path(__file__).parent))
@@ -89,10 +92,12 @@ def load_scorer():
     except FileNotFoundError:
         return None
 
-@st.cache_resource(show_spinner="Memuat ArcFace embedder...")
+@st.cache_resource(show_spinner="Memuat ArcFace embedder (bisa memakan waktu untuk download bobot model saat pertama kali)...")
 def load_embedder():
     from src.embedder import FaceEmbedder
-    return FaceEmbedder(detector_backend="opencv")
+    embedder = FaceEmbedder(detector_backend="opencv")
+    embedder.preload_model()
+    return embedder
 
 scorer   = load_scorer()
 embedder = load_embedder()

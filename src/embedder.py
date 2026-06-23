@@ -32,6 +32,13 @@ class FaceEmbedder:
         except Exception:
             return False
 
+    def preload_model(self):
+        if self._init_deepface():
+            try:
+                self._deepface.build_model("ArcFace")
+            except Exception as e:
+                print(f"Gagal pre-load ArcFace model: {e}")
+
     def get_embedding(
         self,
         image_bgr: np.ndarray,
