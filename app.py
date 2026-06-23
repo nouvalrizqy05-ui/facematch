@@ -13,6 +13,7 @@ import os
 import io
 import base64
 import sys
+import traceback
 import warnings
 import tempfile
 import zipfile
@@ -338,7 +339,6 @@ else:
 if run and file1 and file2:
 
     emb1, emb2, crop1, crop2 = None, None, None, None
-
     with st.spinner("Mengekstrak ArcFace embedding..."):
         try:
             img1_bgr = pil_to_bgr(Image.open(file1))
@@ -346,11 +346,9 @@ if run and file1 and file2:
             emb1, crop1 = embedder.get_embedding(img1_bgr, enforce_detection=False)
             emb2, crop2 = embedder.get_embedding(img2_bgr, enforce_detection=False)
         except Exception as e:
-            st.markdown(f"""
-            <div class="fm-card" style="border-left:4px solid #f43f5e;">
-              <p style="color:#f43f5e;font-weight:700;margin:0;">❌ Error saat ekstraksi embedding</p>
-              <p style="font-size:12px;color:#64748b;margin:6px 0 0;">{str(e)}</p>
-            </div>""", unsafe_allow_html=True)
+            tb = traceback.format_exc()
+            st.error(f"❌ Error saat ekstraksi embedding: {e}")
+            st.code(tb, language="python")
             st.stop()
 
     if emb1 is None or emb2 is None:
@@ -367,7 +365,9 @@ if run and file1 and file2:
     try:
         result = scorer.score(emb1, emb2)
     except Exception as e:
+        tb = traceback.format_exc()
         st.error(f"❌ Gagal menghitung skor: {e}")
+        st.code(tb, language="python")
         st.stop()
 
     # --- Generate semua plot ---
@@ -379,7 +379,9 @@ if run and file1 and file2:
             b64_pca2d  = fig_to_b64(plot_embedding_comparison(emb1, emb2, scorer._pca, "Foto Masa Kecil", "Foto Sekarang"))
             b64_pca_var= fig_to_b64(plot_pca_variance(scorer._pca))
         except Exception as e:
+            tb = traceback.format_exc()
             st.error(f"❌ Gagal membuat visualisasi: {e}")
+            st.code(tb, language="python")
             st.stop()
 
     match_class = "match" if result.is_match else "nomatch"
