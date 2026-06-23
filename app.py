@@ -314,10 +314,10 @@ st.markdown('</div>', unsafe_allow_html=True)  # tutup fm-card
 run = False
 if file1 and file2:
     run = st.button("🔍  Mulai Analisis", type="primary",
-                    use_container_width=True, key="btn_run")
+                    key="btn_run")
 else:
     st.button("🔍  Mulai Analisis", type="primary",
-              use_container_width=True, disabled=True, key="btn_run_dis")
+              disabled=True, key="btn_run_dis")
     st.markdown('<p style="text-align:center;font-size:11px;color:#94a3b8;margin-top:6px;">Upload kedua foto untuk memulai</p>',
                 unsafe_allow_html=True)
 
